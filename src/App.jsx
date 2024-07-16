@@ -1,13 +1,23 @@
 import './App.css'
+import Home from "./Home/Home.jsx";
+import {Route, Switch, useLocation} from 'wouter';
+import Maze from "./Maze/Maze.jsx";
 
 function App() {
-
   return (
-    <>
-      <div>
-          <img src={'img/foxy.svg'}/>
-      </div>
-    </>
+      <>
+          <Switch>
+              <Route path={'/'}>
+                  <Home/>
+              </Route>
+              <Route path={'/maze'}>
+                  <Maze initInProp={false}/>
+              </Route>
+              <Route>
+                  <div>Nothing here</div>
+              </Route>
+          </Switch>
+      </>
   )
 }
 

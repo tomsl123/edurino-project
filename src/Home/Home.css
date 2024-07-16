@@ -1,0 +1,34 @@
+.foxContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.welcomeFox {
+    height: 70vh;
+}
+
+.downShape {
+    width: 100vw;
+    position: absolute;
+    bottom: -50px;
+    overflow: hidden;
+}
+
+.nextButton {
+    position: absolute;
+    width: 70vw;
+    height: 10rem;
+    background-color: #7950F2;
+    bottom: 8vh;
+    border-radius: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 4rem;
+    color: #F4EEE4;
+    font-family: Quicksand, sans-serif;
+}
