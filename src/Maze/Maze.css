@@ -1,0 +1,18 @@
+.maze-square {
+    width: 9rem;
+    height: 9rem;
+    border-radius: 2.5rem;
+}
+
+.maze {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.path {
+    background-color: #A8E8FF;
+}
+
+.wall {
+    background-color: #528EA4;
+}
