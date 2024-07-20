@@ -1,3 +1,10 @@
+.mazeContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100vw;
+}
+
 .maze-square {
     width: 9rem;
     height: 9rem;
@@ -15,4 +22,57 @@
 
 .wall {
     background-color: #528EA4;
+}
+
+.header {
+    width: 100vw;
+    height: 10rem;
+    margin-bottom: 5rem;
+}
+
+.buttons-container {
+    position: fixed;
+    bottom: 10rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 30rem;
+    height: 30rem;
+}
+
+.button {
+    width: 10rem;
+    height: 10rem;
+    background-color: #FA9308;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#left {
+    position: relative;
+    left: 2rem;
+    margin-top: 20rem;
+}
+
+#right {
+    position: relative;
+    right: 2rem;
+    margin-top: 20rem;
+}
+
+#up {
+    position: relative;
+    top: 2rem;
+}
+
+#down {
+    position: relative;
+    bottom: 2rem;
 }

@@ -3,42 +3,118 @@ import { Transition } from 'react-transition-group';
 import {createElement, useRef, useState} from "react";
 import labyrinthos from "labyrinthos";
 
-const duration = 300;
+const opacityDuration = 300;
+const moveDuration = 500;
 
-const defaultStyle = {
-    transition: `opacity ${duration}ms ease-in-out`,
+const defaultComponentStyle = {
+    transition: `opacity ${opacityDuration}ms ease-in-out`,
     opacity: 0,
 }
 
-const transitionStyles = {
+const componentTransitionStyles = {
     entering: { opacity: 1 },
     entered:  { opacity: 1 },
     exiting:  { opacity: 0 },
     exited:  { opacity: 0 },
 };
 
+const defaultCharacterStyle = {
+    transition: `transform ${opacityDuration}ms ease-in-out`,
+    position: 'absolute',
+    bottom: 0,
+    left: 0
+}
+
+const characterTransitionStyles = {
+    up: {
+        entering: {transform: `translateX(50px)`},
+        entered: {transform: `translateX(0px)`},
+        exiting: {transform: `translateX(0px)`},
+        exited: {transform: `translateX(0px)`},
+    },
+    down: {
+        entering: {transform: `translateX(50px)`},
+        entered: {transform: `translateX(0px)`},
+        exiting: {transform: `translateX(0px)`},
+        exited: {transform: `translateX(0px)`},
+    },
+    left: {
+        entering: {transform: `translateX(50px)`},
+        entered: {transform: `translateX(0px)`},
+        exiting: {transform: `translateX(0px)`},
+        exited: {transform: `translateX(0px)`},
+    },
+    right: {
+        entering: {transform: `translateX(50px)`},
+        entered: {transform: `translateX(0px)`},
+        exiting: {transform: `translateX(0px)`},
+        exited: {transform: `translateX(0px)`},
+    },
+}
+
 const maze = prepareMaze(6,7);
 const endAndStartPoint = findFurthestPoints(maze);
 
 function Maze(props) {
-    const nodeRef = useRef(null);
-    const [inProp, setInProp] = useState(props.initInProp);
+    const nodeRefComponent = useRef(null);
+    const [componentInProp, setComponentInProp] = useState(props.initInProp);
+    const [characterInProp, setCharacterInProp] = useState(false);
     const [characterPos, setCharacterPos] = useState(endAndStartPoint[1]);
 
     setTimeout(() => {
-        setInProp(true);
+        setComponentInProp(true);
     }, 100)
 
+    function processCharacterMove(event) {
+        let direction = 'none';
+        if(event.type === 'click') {
+            if(event.target.tagName === 'IMG') {
+                direction = event.target.parentElement.id;
+            }
+            else {
+                direction = event.target.id
+            }
+        }
 
+        if(direction === 'up' && maze[characterPos[0]-1] !== undefined &&  maze[characterPos[0]-1][characterPos[1]] === 0) {
+            setCharacterPos([characterPos[0]-1, characterPos[1]])
+        }
+        else if(direction === 'down' && maze[characterPos[0]+1] !== undefined && maze[characterPos[0]+1][characterPos[1]] === 0) {
+            setCharacterPos([characterPos[0]+1, characterPos[1]])
+        }
+        else if(direction === 'left' && maze[characterPos[0]][characterPos[1]-1] === 0) {
+            setCharacterPos([characterPos[0], characterPos[1]-1])
+        }
+        else if(direction === 'right' && maze[characterPos[0]][characterPos[1]+1] === 0) {
+            setCharacterPos([characterPos[0], characterPos[1]+1])
+        }
+    }
 
     return (
-        <Transition nodeRef={nodeRef} in={inProp} timeout={duration}>
+        <Transition nodeRef={nodeRefComponent} in={componentInProp} timeout={opacityDuration}>
             {state => (
-                <div className={'foxContainer'} ref={nodeRef} style={{
-                    ...defaultStyle,
-                    ...transitionStyles[state]
+                <div className={'mazeContainer'} ref={nodeRefComponent} style={{
+                    ...defaultComponentStyle,
+                    ...componentTransitionStyles[state]
                 }}>
-                    {renderMaze(maze)}
+                    <div className={'header'}>
+
+                    </div>
+                    {renderMaze(characterPos)}
+                    <div className={'buttons-container'}>
+                        <button id={'left'} className={'button'} onClick={processCharacterMove}>
+                            <img src={'img/left.svg'}/>
+                        </button>
+                        <button id={'up'} className={'button'} onClick={processCharacterMove}>
+                            <img src={'img/up.svg'}/>
+                        </button>
+                        <button id={'right'} className={'button'} onClick={processCharacterMove}>
+                            <img src={'img/right.svg'}/>
+                        </button>
+                        <button id={'down'} className={'button'} onClick={processCharacterMove}>
+                            <img src={'img/down.svg'}/>
+                        </button>
+                    </div>
                 </div>
             )}
         </Transition>
@@ -120,7 +196,7 @@ function findFurthestPoints(maze) {
     return [startPoint, endPoint];
 }
 
-function renderMaze(maze) {
+function renderMaze(characterPos) {
     const mazeSquares = [];
     const rowBreakStyle = {gridTemplateColumns: `repeat(${maze[0].length}, 1fr)`};
 
@@ -133,8 +209,20 @@ function renderMaze(maze) {
         }
     }
 
-    return createElement('div', {className: 'maze', style: rowBreakStyle}, mazeSquares);
+    return createElement('div', {className: 'maze', style: rowBreakStyle}, ...mazeSquares, renderCharacter(characterPos),);
 
+}
+
+function renderCharacter(characterPos) {
+    characterPos[0] = maze.length - characterPos[0];
+
+    const style = {
+        position: 'relative',
+        left: `${characterPos[1] * 10.5 + 0.5}rem`,
+        top: `${characterPos[0] * -10.5 - 0.5}rem`
+    }
+    const character = createElement('img', {src: 'img/foxy-mirror.svg', id: 'character', key: 'character', style: style});
+    return character;
 }
 
 export default Maze
