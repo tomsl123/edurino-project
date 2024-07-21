@@ -44,6 +44,7 @@ function Maze(props) {
     const nodeRefAnswer3 = useRef(null);
     const nodeRefQuestionModal = useRef(null);
     const nodeRefQuestionEntryObject = useRef(null);
+    const nodeRefTreasure = useRef(null);
 
     const [componentInProp, setComponentInProp] = useState(props.initInProp);
     const [answer1InProp, setAnswer1InProp] = useState(false);
@@ -51,6 +52,7 @@ function Maze(props) {
     const [answer3InProp, setAnswer3InProp] = useState(false);
     const [questionModalInProp, setQuestionModalInProp] = useState(false);
     const [questionEntryObjectInProp, setQuestionEntryObjectInProp] = useState(true);
+    const [treasureInProp, setTreasureInProp] = useState(true);
     const [characterPos, setCharacterPos] = useState(endAndStartPoint[1]);
 
     setTimeout(() => {
@@ -58,7 +60,7 @@ function Maze(props) {
     }, 100)
 
     function processCharacterMove(event) {
-        if(questionModalInProp === true) {
+        if(questionModalInProp === true || treasureInProp === false) {
             return;
         }
 
@@ -93,6 +95,9 @@ function Maze(props) {
         if(compareCoords(newPosition, questionsCoordinates)) {
             setQuestionEntryObjectInProp(false);
             setQuestionModalInProp(true);
+        }
+        else if(compareCoords(newPosition, endAndStartPoint[0])) {
+            setTreasureInProp(false);
         }
     }
 
@@ -175,7 +180,7 @@ function Maze(props) {
                         <div className={'header'}>
 
                         </div>
-                        {renderMaze(characterPos, nodeRefQuestionEntryObject, questionEntryObjectInProp)}
+                        {renderMaze(characterPos, nodeRefQuestionEntryObject, questionEntryObjectInProp, nodeRefTreasure, treasureInProp)}
                         <div className={'buttons-container'}>
                             <button id={'left'} className={'button'} onClick={processCharacterMove}>
                                 <img src={'img/left.svg'}/>
@@ -273,7 +278,7 @@ function findFurthestPoints(maze) {
     return [startPoint, endPoint];
 }
 
-function renderMaze(characterPos, questionEntryNodeRef, questionEntryInProp) {
+function renderMaze(characterPos, questionEntryNodeRef, questionEntryInProp, treasureNodeRef, treasureInProp) {
     const mazeSquares = [];
     const rowBreakStyle = {gridTemplateColumns: `repeat(${maze[0].length}, 1fr)`};
 
@@ -291,7 +296,9 @@ function renderMaze(characterPos, questionEntryNodeRef, questionEntryInProp) {
         {className: 'maze', style: rowBreakStyle},
         ...mazeSquares,
         renderCharacter(characterPos),
-        renderQuestionEntryObject(questionEntryNodeRef, questionEntryInProp));
+        renderQuestionEntryObject(questionEntryNodeRef, questionEntryInProp),
+        renderTreasure(treasureNodeRef, treasureInProp)
+    );
 
 }
 
@@ -324,8 +331,23 @@ function renderQuestionEntryObject(nodeRef, inProp) {
     )
 }
 
-function renderTreasure() {
-    
+function renderTreasure(nodeRef, inProp) {
+    const endCoordinates = endAndStartPoint[0];
+    endCoordinates[0] = maze.length - 1 - endCoordinates[0]
+
+    const style = {
+        position: 'relative',
+        left: `${endCoordinates[1] * 10.5 - 21}rem`,
+        top: `${endCoordinates[0] * -10.5 - 10.5}rem`
+    }
+    return (
+
+        <Transition  nodeRef={nodeRef} in={inProp} timeout={opacityDuration}>
+            {state => (
+                <img src={'img/treasure.png'} id={'treasure'} style={{...style, ...defaultOpacityStyle, ...opacityTransitionStyles[state]}}/>
+            )}
+        </Transition>
+    )
 }
 
 function chooseQuestionCoords(mazeArray) {
