@@ -156,3 +156,7 @@
 .correct {
     background-color: #51F254;
 }
+
+#questionEntry {
+    width: 8rem;
+}

@@ -5,12 +5,12 @@ import labyrinthos from "labyrinthos";
 
 const opacityDuration = 300;
 
-const defaultComponentStyle = {
+const defaultOpacityStyle = {
     transition: `opacity ${opacityDuration}ms ease-in-out`,
     opacity: 0,
 }
 
-const componentTransitionStyles = {
+const opacityTransitionStyles = {
     entering: { opacity: 1 },
     entered:  { opacity: 1 },
     exiting:  { opacity: 0 },
@@ -34,17 +34,21 @@ const answerTransitionStyles = {
 
 const maze = prepareMaze(6,7);
 const endAndStartPoint = findFurthestPoints(maze);
-const question = prepareQuestion()
+const question = prepareQuestion();
+const questionsCoordinates = chooseQuestionCoords(maze);
 
 function Maze(props) {
     const nodeRefComponent = useRef(null);
     const nodeRefAnswer1 = useRef(null);
     const nodeRefAnswer2 = useRef(null);
     const nodeRefAnswer3 = useRef(null);
+    const nodeRefQuestionModal = useRef(null);
+
     const [componentInProp, setComponentInProp] = useState(props.initInProp);
     const [answer1InProp, setAnswer1InProp] = useState(false);
     const [answer2InProp, setAnswer2InProp] = useState(false);
     const [answer3InProp, setAnswer3InProp] = useState(false);
+    const [questionModalInProp, setQuestionModalInProp] = useState(true);
     const [characterPos, setCharacterPos] = useState(endAndStartPoint[1]);
 
     setTimeout(() => {
@@ -98,45 +102,59 @@ function Maze(props) {
         if(question.answers[questionIndex].type !== 'correct') {
             setTimeout(colorTimeoutHandle, 600);
         }
+        else {
+            setTimeout(() => setQuestionModalInProp(false), 600);
+        }
     }
 
     return (
         <div>
-            <div className={'modal'}>
-                <div className={'modal-head'}>
-                    <div className={'avatar-container'}>
-                        <img src={'img/robin-head.png'}/>
+            <Transition nodeRef={nodeRefQuestionModal} in={questionModalInProp} timeout={opacityDuration}>
+                {state => (
+                    <div className={'modal'} ref={nodeRefQuestionModal} style={{
+                        ...defaultOpacityStyle,
+                        ...opacityTransitionStyles[state]
+                    }}>
+                        <div className={'modal-head'}>
+                            <div className={'avatar-container'}>
+                                <img src={'img/robin-head.png'}/>
+                            </div>
+                            <div className={'question-text'}>
+                                I need to find a number that fits in the empty space. Will you help?
+                            </div>
+                        </div>
+                        <div className={'question-problem'}>
+                            {question.sequence.join(', ')}
+                        </div>
+                        <div className={'question-buttons-container'}>
+                            <Transition nodeRef={nodeRefAnswer1} in={answer1InProp} timeout={500}>
+                                {state => (
+                                    <button onClick={processAnswer}
+                                            style={answerTransitionStyles[question.answers[0].type][state]}>{question.answers[0].answer}</button>
+                                )}
+                            </Transition>
+                            <Transition nodeRef={nodeRefAnswer2} in={answer2InProp} timeout={500}>
+                                {state => (
+                                    <button onClick={processAnswer}
+                                            style={answerTransitionStyles[question.answers[1].type][state]}>{question.answers[1].answer}</button>
+                                )}
+                            </Transition>
+                            <Transition nodeRef={nodeRefAnswer3} in={answer3InProp} timeout={500}>
+                                {state => (
+                                    <button onClick={processAnswer}
+                                            style={answerTransitionStyles[question.answers[2].type][state]}>{question.answers[2].answer}</button>
+                                )}
+                            </Transition>
+                        </div>
                     </div>
-                    <div className={'question-text'}>
-                        I need to find a number that fits in the empty space. Will you help?
-                    </div>
-                </div>
-                <div className={'question-problem'}>
-                    {question.sequence.join(', ')}
-                </div>
-                <div className={'question-buttons-container'}>
-                    <Transition nodeRef={nodeRefAnswer1} in={answer1InProp} timeout={500}>
-                        {state => (
-                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[0].type][state]}>{question.answers[0].answer}</button>
-                        )}
-                    </Transition>
-                    <Transition nodeRef={nodeRefAnswer2} in={answer2InProp} timeout={500}>
-                        {state => (
-                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[1].type][state]}>{question.answers[1].answer}</button>
-                        )}
-                    </Transition>
-                    <Transition nodeRef={nodeRefAnswer3} in={answer3InProp} timeout={500}>
-                        {state => (
-                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[2].type][state]}>{question.answers[2].answer}</button>
-                        )}
-                    </Transition>
-                </div>
-            </div>
+                )}
+            </Transition>
+
             <Transition nodeRef={nodeRefComponent} in={componentInProp} timeout={opacityDuration}>
                 {state => (
                     <div className={'mazeContainer'} ref={nodeRefComponent} style={{
-                        ...defaultComponentStyle,
-                        ...componentTransitionStyles[state]
+                        ...defaultOpacityStyle,
+                        ...opacityTransitionStyles[state]
                     }}>
                         <div className={'header'}>
 
@@ -252,7 +270,7 @@ function renderMaze(characterPos) {
         }
     }
 
-    return createElement('div', {className: 'maze', style: rowBreakStyle}, ...mazeSquares, renderCharacter(characterPos),);
+    return createElement('div', {className: 'maze', style: rowBreakStyle}, ...mazeSquares, renderCharacter(characterPos), renderQuestionEntryObject());
 
 }
 
@@ -265,6 +283,44 @@ function renderCharacter(characterPos) {
         top: `${characterPos[0] * -10.5 - 0.5}rem`
     }
     return createElement('img', {src: 'img/foxy-mirror.svg', id: 'character', key: 'character', style: style});
+}
+
+function renderQuestionEntryObject() {
+    questionsCoordinates[0] = maze.length - 1 - questionsCoordinates[0]
+
+    const style = {
+        position: 'relative',
+        left: `${questionsCoordinates[1] * 10.5 - 10.5}rem`,
+        top: `${questionsCoordinates[0] * -10.5 - 11.2}rem`
+    }
+    return createElement('img', {src: 'img/robin.png', id: 'questionEntry', key: 'questionEntry', style: style});
+}
+
+function renderTreasure() {
+    
+}
+
+function chooseQuestionCoords(mazeArray) {
+    const zeroIndices = [];
+    for (let y = 0; y < mazeArray.length; y++) {
+        for (let x = 0; x < mazeArray[y].length; x++) {
+            if (mazeArray[y][x] === 0) {
+                zeroIndices.push([y, x]);
+            }
+        }
+    }
+
+    const endCoordIndex = zeroIndices.findIndex((coord) => compareCoords(coord, endAndStartPoint[0]))
+    zeroIndices.splice(endCoordIndex, 1);
+    const startCoordIndex = zeroIndices.findIndex((coord) => compareCoords(coord, endAndStartPoint[1]))
+    zeroIndices.splice(startCoordIndex, 1);
+
+    const randomIndex = Math.floor(Math.random() * zeroIndices.length);
+    return zeroIndices[randomIndex];
+}
+
+function compareCoords(coord1, coord2) {
+    return coord1[0] === coord2[0] && coord1[1] === coord2[1];
 }
 
 function prepareQuestion() {
