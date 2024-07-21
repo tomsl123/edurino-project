@@ -1,0 +1,12 @@
+.rewardFox {
+    height: 60vh;
+    margin-left: 20rem;
+    position: absolute;
+    bottom: 20vh;
+    right: -5vw;
+}
+
+.treasure {
+    position: absolute;
+    top: 35vh;
+}

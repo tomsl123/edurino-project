@@ -26,8 +26,15 @@
 
 .header {
     width: 100vw;
-    height: 10rem;
+    height: 12rem;
     margin-bottom: 5rem;
+}
+
+.header img {
+    height: 100%;
+    float: right;
+    margin-right: 1rem;
+    margin-top: 1rem;
 }
 
 .buttons-container {

@@ -2,6 +2,7 @@ import './Maze.css'
 import {Transition} from 'react-transition-group';
 import {createElement, useRef, useState} from "react";
 import labyrinthos from "labyrinthos";
+import {useLocation} from "wouter";
 
 const opacityDuration = 300;
 
@@ -32,6 +33,8 @@ const answerTransitionStyles = {
     }
 };
 
+
+
 const maze = prepareMaze(6,7);
 const endAndStartPoint = findFurthestPoints(maze);
 const question = prepareQuestion();
@@ -55,9 +58,13 @@ function Maze(props) {
     const [treasureInProp, setTreasureInProp] = useState(true);
     const [characterPos, setCharacterPos] = useState(endAndStartPoint[1]);
 
-    setTimeout(() => {
-        setComponentInProp(true);
-    }, 100)
+    const [location, setLocation] = useLocation();
+
+    if(componentInProp === false && treasureInProp === true) {
+        setTimeout(() => {
+            setComponentInProp(true);
+        }, 100)
+    }
 
     function processCharacterMove(event) {
         if(questionModalInProp === true || treasureInProp === false) {
@@ -98,6 +105,8 @@ function Maze(props) {
         }
         else if(compareCoords(newPosition, endAndStartPoint[0])) {
             setTreasureInProp(false);
+            setTimeout(() => setComponentInProp(false), opacityDuration);
+            setTimeout(() => setLocation('/reward'), opacityDuration*2)
         }
     }
 
@@ -130,6 +139,9 @@ function Maze(props) {
 
     return (
         <div>
+            <div className={'header'}>
+                <img src={'img/logo.png'}/>
+            </div>
             <Transition nodeRef={nodeRefQuestionModal} in={questionModalInProp} timeout={opacityDuration}>
                 {state => (
                     <div className={'modal'} ref={nodeRefQuestionModal} style={{
@@ -177,9 +189,6 @@ function Maze(props) {
                         ...defaultOpacityStyle,
                         ...opacityTransitionStyles[state]
                     }}>
-                        <div className={'header'}>
-
-                        </div>
                         {renderMaze(characterPos, nodeRefQuestionEntryObject, questionEntryObjectInProp, nodeRefTreasure, treasureInProp)}
                         <div className={'buttons-container'}>
                             <button id={'left'} className={'button'} onClick={processCharacterMove}>
@@ -400,6 +409,7 @@ function prepareQuestion() {
     return {sequence, answers};
 }
 
+// Fisher–Yates shuffle (taken from internet)
 function shuffle(array) {
     let currentIndex = array.length;
 
