@@ -1,10 +1,9 @@
 import './Maze.css'
-import { Transition } from 'react-transition-group';
+import {Transition} from 'react-transition-group';
 import {createElement, useRef, useState} from "react";
 import labyrinthos from "labyrinthos";
 
 const opacityDuration = 300;
-const moveDuration = 500;
 
 const defaultComponentStyle = {
     transition: `opacity ${opacityDuration}ms ease-in-out`,
@@ -18,47 +17,34 @@ const componentTransitionStyles = {
     exited:  { opacity: 0 },
 };
 
-const defaultCharacterStyle = {
-    transition: `transform ${opacityDuration}ms ease-in-out`,
-    position: 'absolute',
-    bottom: 0,
-    left: 0
-}
-
-const characterTransitionStyles = {
-    up: {
-        entering: {transform: `translateX(50px)`},
-        entered: {transform: `translateX(0px)`},
-        exiting: {transform: `translateX(0px)`},
-        exited: {transform: `translateX(0px)`},
+const answerTransitionStyles = {
+    wrong: {
+        entering: { backgroundColor: '#EB4040' },
+        entered:  { backgroundColor: '#EB4040' },
+        exiting:  { backgroundColor: '#FA9308' },
+        exited:  { backgroundColor: '#FA9308' }
     },
-    down: {
-        entering: {transform: `translateX(50px)`},
-        entered: {transform: `translateX(0px)`},
-        exiting: {transform: `translateX(0px)`},
-        exited: {transform: `translateX(0px)`},
-    },
-    left: {
-        entering: {transform: `translateX(50px)`},
-        entered: {transform: `translateX(0px)`},
-        exiting: {transform: `translateX(0px)`},
-        exited: {transform: `translateX(0px)`},
-    },
-    right: {
-        entering: {transform: `translateX(50px)`},
-        entered: {transform: `translateX(0px)`},
-        exiting: {transform: `translateX(0px)`},
-        exited: {transform: `translateX(0px)`},
-    },
-}
+    correct: {
+        entering: { backgroundColor: '#51F254' },
+        entered:  { backgroundColor: '#51F254' },
+        exiting:  { backgroundColor: '#FA9308' },
+        exited:  { backgroundColor: '#FA9308' }
+    }
+};
 
 const maze = prepareMaze(6,7);
 const endAndStartPoint = findFurthestPoints(maze);
+const question = prepareQuestion()
 
 function Maze(props) {
     const nodeRefComponent = useRef(null);
+    const nodeRefAnswer1 = useRef(null);
+    const nodeRefAnswer2 = useRef(null);
+    const nodeRefAnswer3 = useRef(null);
     const [componentInProp, setComponentInProp] = useState(props.initInProp);
-    const [characterInProp, setCharacterInProp] = useState(false);
+    const [answer1InProp, setAnswer1InProp] = useState(false);
+    const [answer2InProp, setAnswer2InProp] = useState(false);
+    const [answer3InProp, setAnswer3InProp] = useState(false);
     const [characterPos, setCharacterPos] = useState(endAndStartPoint[1]);
 
     setTimeout(() => {
@@ -90,34 +76,91 @@ function Maze(props) {
         }
     }
 
-    return (
-        <Transition nodeRef={nodeRefComponent} in={componentInProp} timeout={opacityDuration}>
-            {state => (
-                <div className={'mazeContainer'} ref={nodeRefComponent} style={{
-                    ...defaultComponentStyle,
-                    ...componentTransitionStyles[state]
-                }}>
-                    <div className={'header'}>
+    function processAnswer(event) {
+        const questionIndex = question.answers.findIndex((answerObject) => {
+            return  answerObject.answer === parseInt(event.target.innerText)
+        });
+        let colorTimeoutHandle = ()=>{};
 
+        if(questionIndex === 0) {
+            setAnswer1InProp(true);
+            colorTimeoutHandle = () => setAnswer1InProp(false);
+        }
+        if(questionIndex === 1) {
+            setAnswer2InProp(true);
+            colorTimeoutHandle = () => setAnswer2InProp(false);
+        }
+        if(questionIndex === 2) {
+            setAnswer3InProp(true);
+            colorTimeoutHandle = () => setAnswer3InProp(false);
+        }
+
+        if(question.answers[questionIndex].type !== 'correct') {
+            setTimeout(colorTimeoutHandle, 600);
+        }
+    }
+
+    return (
+        <div>
+            <div className={'modal'}>
+                <div className={'modal-head'}>
+                    <div className={'avatar-container'}>
+                        <img src={'img/robin-head.png'}/>
                     </div>
-                    {renderMaze(characterPos)}
-                    <div className={'buttons-container'}>
-                        <button id={'left'} className={'button'} onClick={processCharacterMove}>
-                            <img src={'img/left.svg'}/>
-                        </button>
-                        <button id={'up'} className={'button'} onClick={processCharacterMove}>
-                            <img src={'img/up.svg'}/>
-                        </button>
-                        <button id={'right'} className={'button'} onClick={processCharacterMove}>
-                            <img src={'img/right.svg'}/>
-                        </button>
-                        <button id={'down'} className={'button'} onClick={processCharacterMove}>
-                            <img src={'img/down.svg'}/>
-                        </button>
+                    <div className={'question-text'}>
+                        I need to find a number that fits in the empty space. Will you help?
                     </div>
                 </div>
-            )}
-        </Transition>
+                <div className={'question-problem'}>
+                    {question.sequence.join(', ')}
+                </div>
+                <div className={'question-buttons-container'}>
+                    <Transition nodeRef={nodeRefAnswer1} in={answer1InProp} timeout={500}>
+                        {state => (
+                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[0].type][state]}>{question.answers[0].answer}</button>
+                        )}
+                    </Transition>
+                    <Transition nodeRef={nodeRefAnswer2} in={answer2InProp} timeout={500}>
+                        {state => (
+                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[1].type][state]}>{question.answers[1].answer}</button>
+                        )}
+                    </Transition>
+                    <Transition nodeRef={nodeRefAnswer3} in={answer3InProp} timeout={500}>
+                        {state => (
+                            <button onClick={processAnswer} style={answerTransitionStyles[question.answers[2].type][state]}>{question.answers[2].answer}</button>
+                        )}
+                    </Transition>
+                </div>
+            </div>
+            <Transition nodeRef={nodeRefComponent} in={componentInProp} timeout={opacityDuration}>
+                {state => (
+                    <div className={'mazeContainer'} ref={nodeRefComponent} style={{
+                        ...defaultComponentStyle,
+                        ...componentTransitionStyles[state]
+                    }}>
+                        <div className={'header'}>
+
+                        </div>
+                        {renderMaze(characterPos)}
+                        <div className={'buttons-container'}>
+                            <button id={'left'} className={'button'} onClick={processCharacterMove}>
+                                <img src={'img/left.svg'}/>
+                            </button>
+                            <button id={'up'} className={'button'} onClick={processCharacterMove}>
+                                <img src={'img/up.svg'}/>
+                            </button>
+                            <button id={'right'} className={'button'} onClick={processCharacterMove}>
+                                <img src={'img/right.svg'}/>
+                            </button>
+                            <button id={'down'} className={'button'} onClick={processCharacterMove}>
+                                <img src={'img/down.svg'}/>
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Transition>
+        </div>
+
     )
 }
 
@@ -221,8 +264,50 @@ function renderCharacter(characterPos) {
         left: `${characterPos[1] * 10.5 + 0.5}rem`,
         top: `${characterPos[0] * -10.5 - 0.5}rem`
     }
-    const character = createElement('img', {src: 'img/foxy-mirror.svg', id: 'character', key: 'character', style: style});
-    return character;
+    return createElement('img', {src: 'img/foxy-mirror.svg', id: 'character', key: 'character', style: style});
+}
+
+function prepareQuestion() {
+    let sequence = [];
+
+    const startNumber = Math.floor(Math.random() * 5)+1;
+    const addNumber = Math.floor(Math.random() * 5)+1;
+
+    for (let sequenceNumber = startNumber; sequenceNumber <= startNumber+addNumber*4 ; sequenceNumber+=addNumber) {
+        sequence.push(sequenceNumber);
+    }
+
+    if(Math.random() < 0.5) {
+        sequence = sequence.reverse();
+    }
+
+    const missingIndex = Math.floor(Math.random() * sequence.length)
+    const answers = [
+        {answer: 0, type: 'wrong'},
+        {answer: Math.floor(Math.random() * 40)+80, type: 'wrong'},
+        {answer: sequence[missingIndex], type: 'correct'}
+    ];
+
+    shuffle(answers);
+    sequence[missingIndex] = '_';
+
+    return {sequence, answers};
+}
+
+function shuffle(array) {
+    let currentIndex = array.length;
+
+    // While there remain elements to shuffle...
+    while (currentIndex !== 0) {
+
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+    }
 }
 
 export default Maze
